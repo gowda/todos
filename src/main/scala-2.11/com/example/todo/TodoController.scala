@@ -9,4 +9,9 @@ class TodoController @Inject()(todoService: TodoService) extends Controller {
   get("/") { request: Request =>
     todoService.getAll
   }
+
+  post("/") { request: PostTodoRequest =>
+    var todo = todoService.add(request)
+    response.created
+  }
 }
