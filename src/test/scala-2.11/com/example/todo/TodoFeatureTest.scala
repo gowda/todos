@@ -4,8 +4,16 @@ import com.twitter.finagle.http.Status
 import com.twitter.finatra.http.test.EmbeddedHttpServer
 import com.twitter.inject.server.FeatureTest
 import org.joda.time.DateTime
+import redis.clients.jedis.Jedis
 
 class TodoFeatureTest extends FeatureTest {
+
+  override protected def beforeAll() = {
+    super.beforeAll()
+    val client: Jedis = injector.instance[Jedis]
+    client.flushAll()
+  }
+
   override val server = new EmbeddedHttpServer(new TodoServer)
   val invalidJson = s"""{}"""
   val todoJson1 = s"""
