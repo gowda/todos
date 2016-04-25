@@ -2,6 +2,7 @@ package com.example.todo
 
 import javax.inject.Inject
 
+import com.example.todo.exceptions.ResourceNotFoundException
 import com.twitter.finatra.json.FinatraObjectMapper
 import com.twitter.inject.Logging
 import redis.clients.jedis.Jedis

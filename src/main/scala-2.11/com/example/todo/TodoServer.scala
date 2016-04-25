@@ -1,5 +1,6 @@
 package com.example.todo
 
+import com.example.todo.exceptions.ResourceNotFoundExceptionMapper
 import com.example.todo.modules.JedisModule
 import com.twitter.finatra.http.HttpServer
 import com.twitter.finatra.http.filters.CommonFilters
