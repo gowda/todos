@@ -21,7 +21,7 @@ class TodoIdCounter @Inject()(client: Jedis) {
 
     val nextValue = current + 1
     client.set(CounterKey, s"${nextValue.toString}")
-    s"$KeyPrefix-$nextValue"
+    s"$KeyPrefix$nextValue"
   }
 }
 

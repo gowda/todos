@@ -12,7 +12,7 @@ class TodoService @Inject()(client: Jedis,
                             mapper: FinatraObjectMapper)
   extends Logging {
   def getAll(): List[Todo] = {
-    val keys = client.keys(s"$KeyPrefix-*").toArray
+    val keys = client.keys(s"$KeyPrefix*").toArray
     var todos: List[Todo] = List[Todo]()
     for (key <- keys) {
       val todoJson = client.get(key.toString)
