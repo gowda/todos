@@ -1,4 +1,4 @@
-package com.example.todo.models.http
+package com.example.todos.models.http
 
 import javax.inject.Inject
 

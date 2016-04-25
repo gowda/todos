@@ -1,6 +1,6 @@
-package com.example.todo
+package com.example.todos
 
-import com.example.todo.models.{Todo, TodoIdCounter}
+import com.example.todos.models.{Todo, TodosIdCounter}
 import com.twitter.finagle.http.Status
 import com.twitter.finatra.http.test.EmbeddedHttpServer
 import com.twitter.finatra.json.FinatraObjectMapper
@@ -9,7 +9,7 @@ import org.joda.time.DateTime
 import org.mockito.Mockito
 import redis.clients.jedis.Jedis
 
-class TodoFeatureTest extends FeatureTest {
+class TodosFeatureTest extends FeatureTest {
 
   override protected def beforeEach() = {
     super.beforeAll()
@@ -17,7 +17,7 @@ class TodoFeatureTest extends FeatureTest {
     client.flushAll()
   }
 
-  override val server = new EmbeddedHttpServer(new TodoServer)
+  override val server = new EmbeddedHttpServer(new TodosServer)
   val invalidJson = s"""{}"""
   val todoJson1 = s"""
                  |{
@@ -81,7 +81,7 @@ class TodoFeatureTest extends FeatureTest {
     "respond with created TODO for 'POST /'" in {
       val mockId = 123
       val client: Jedis = injector.instance[Jedis]
-      Mockito.when(client.get(TodoIdCounter.CounterKey)).thenReturn(s"$mockId")
+      Mockito.when(client.get(TodosIdCounter.CounterKey)).thenReturn(s"$mockId")
 
       val mapper = injector.instance[FinatraObjectMapper]
       val todo = mapper.parse[Todo](todoJson1)
@@ -104,7 +104,7 @@ class TodoFeatureTest extends FeatureTest {
 
     "respond with all todos for 'GET /'" in {
       val client: Jedis = injector.instance[Jedis]
-      val todoIdCounter = injector.instance[TodoIdCounter]
+      val todoIdCounter = injector.instance[TodosIdCounter]
 
       for (todo <- todoJsons) {
         val id = todoIdCounter.next
@@ -124,7 +124,7 @@ class TodoFeatureTest extends FeatureTest {
     }
 
     "respond with '200 Ok' on 'DELETE /:id' for existing resource" in {
-      val service = injector.instance[TodoService]
+      val service = injector.instance[TodosService]
       val todo = service.add(
         Todo("test title",
           "test description",

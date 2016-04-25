@@ -1,17 +1,17 @@
-package com.example.todo
+package com.example.todos
 
 import javax.inject.Inject
 
-import com.example.todo.exceptions.ResourceNotFoundException
+import com.example.todos.exceptions.ResourceNotFoundException
 import com.twitter.finatra.json.FinatraObjectMapper
 import com.twitter.inject.Logging
 import redis.clients.jedis.Jedis
-import com.example.todo.models.TodoIdCounter.KeyPrefix
-import com.example.todo.models.{Todo, TodoIdCounter}
+import com.example.todos.models.TodosIdCounter.KeyPrefix
+import com.example.todos.models.{Todo, TodosIdCounter}
 
-class TodoService @Inject()(client: Jedis,
-                            counter: TodoIdCounter,
-                            mapper: FinatraObjectMapper)
+class TodosService @Inject()(client: Jedis,
+                             counter: TodosIdCounter,
+                             mapper: FinatraObjectMapper)
   extends Logging {
   def getAll(): List[Todo] = {
     val keys = client.keys(s"$KeyPrefix*").toArray

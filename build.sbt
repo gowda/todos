@@ -1,4 +1,4 @@
-name := "todo"
+name := "todos"
 
 version := "1.0"
 

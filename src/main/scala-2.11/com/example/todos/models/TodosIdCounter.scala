@@ -1,19 +1,19 @@
-package com.example.todo.models
+package com.example.todos.models
 
 import javax.inject.{Inject, Singleton}
 
 import redis.clients.jedis.Jedis
 
-import com.example.todo.models.TodoIdCounter._
+import com.example.todos.models.TodosIdCounter._
 
-object TodoIdCounter {
+object TodosIdCounter {
   val InitialValue = 10000000L
   val CounterKey = "com.example.todo.counter"
   val KeyPrefix = "com.example.todo.ID-"
 }
 
 @Singleton
-class TodoIdCounter @Inject()(client: Jedis) {
+class TodosIdCounter @Inject()(client: Jedis) {
   def next: String = {
     val current: Long = Option(client.get(CounterKey)) match {
       case Some(value) => value.toLong

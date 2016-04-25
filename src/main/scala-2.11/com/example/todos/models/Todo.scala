@@ -1,4 +1,4 @@
-package com.example.todo.models
+package com.example.todos.models
 
 import org.joda.time.DateTime
 

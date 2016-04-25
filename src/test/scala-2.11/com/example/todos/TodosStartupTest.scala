@@ -1,10 +1,10 @@
-package com.example.todo
+package com.example.todos
 
 import com.twitter.finatra.http.test.EmbeddedHttpServer
 import com.twitter.inject.server.FeatureTest
 
-class TodoStartupTest extends FeatureTest {
-  override val server = new EmbeddedHttpServer(new TodoServer)
+class TodosStartupTest extends FeatureTest {
+  override val server = new EmbeddedHttpServer(new TodosServer)
 
   "Todo Server" in {
     server.assertHealthy()

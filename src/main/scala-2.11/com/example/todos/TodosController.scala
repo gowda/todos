@@ -1,13 +1,13 @@
-package com.example.todo
+package com.example.todos
 
 import javax.inject.Inject
 
-import com.example.todo.models.Todo
-import com.example.todo.models.http.{DeleteTodoRequest, PostTodoRequest}
+import com.example.todos.models.Todo
+import com.example.todos.models.http.{DeleteTodoRequest, PostTodoRequest}
 import com.twitter.finagle.http.Request
 import com.twitter.finatra.http.Controller
 
-class TodoController @Inject()(todoService: TodoService) extends Controller {
+class TodosController @Inject()(todoService: TodosService) extends Controller {
   get("/") { request: Request =>
     todoService.getAll
   }

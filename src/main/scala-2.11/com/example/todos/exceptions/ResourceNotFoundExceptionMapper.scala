@@ -1,4 +1,4 @@
-package com.example.todo.exceptions
+package com.example.todos.exceptions
 
 import javax.inject.{Inject, Singleton}
 
