@@ -113,5 +113,19 @@ class TodoFeatureTest extends FeatureTest {
         withJsonBody = s"[$todoJson1, ${todoJsons.mkString(",")}]")
     }
 
+    "respond with '404 Not Found' on 'DELETE /:id' for non-existent resource" in {
+        server.httpDelete(path = "/1234", andExpect = Status.NotFound)
+    }
+
+    "respond with '200 Ok' on 'DELETE /:id' for existing resource" in {
+      val service = injector.instance[TodoService]
+      val todo = service.add(
+        Todo("test title",
+          "test description",
+          DateTime.now().plusDays(1),
+          DateTime.now().plusDays(2)))
+
+      server.httpDelete(path = s"/${todo.id.get}", andExpect = Status.Ok)
+    }
   }
 }
