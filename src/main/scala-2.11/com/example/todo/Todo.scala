@@ -6,4 +6,4 @@ case class Todo(title: String,
                 description: String,
                 start: DateTime,
                 end: DateTime,
-                id: Option[Long] = Some(-1))
+                id: Option[Long] = None)
