@@ -14,6 +14,6 @@ class TodoController @Inject()(todoService: TodoService) extends Controller {
     val todo = todoService.add(
       Todo(request.title, request.description, request.start, request.end))
 
-    response.created
+    response.created(todo)
   }
 }
