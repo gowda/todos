@@ -22,7 +22,7 @@ class TodoService @Inject()(client: Jedis,
       todos = todo :: todos
     }
 
-    todos
+    todos.sortWith(_.start isBefore _.start)
   }
 
   def add(todo: Todo): Todo = {
