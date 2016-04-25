@@ -25,9 +25,10 @@ class TodoService @Inject()(client: Jedis,
     todos
   }
 
-  def add(request: PostTodoRequest): Todo = {
-    val id = counter.next
-    client.set(id, mapper.writeValueAsString(request))
-    Todo(request.title, request.description, request.start, request.end)
+  def add(todo: Todo): Todo = {
+    val todoId = counter.next
+    client.set(todoId, mapper.writeValueAsString(todo))
+
+    todo.copy(id = Some(todoId.replace(KeyPrefix, "").toLong))
   }
 }
