@@ -16,4 +16,10 @@ class TodoController @Inject()(todoService: TodoService) extends Controller {
 
     response.created(todo)
   }
+
+  delete("/:id") { request: DeleteTodoRequest =>
+    info(s"Processing DELETE for ${request.id}")
+    todoService.delete(request.id)
+    response.ok
+  }
 }
