@@ -100,17 +100,20 @@ class TodoFeatureTest extends FeatureTest {
     }
 
     "respond with all todos for 'GET /'" in {
+      val client: Jedis = injector.instance[Jedis]
+      val todoIdCounter = injector.instance[TodoIdCounter]
+
       for (todo <- todoJsons) {
-        server.httpPost(
-          path = "/",
-          postBody = todo,
-          andExpect = Status.Created)
+        val id = todoIdCounter.next
+        client.set(id, todo)
       }
+
+      error(s"Keys: ${client.keys("*")}")
 
       server.httpGet(
         path = "/",
         andExpect = Status.Ok,
-        withJsonBody = s"[$todoJson1, ${todoJsons.mkString(",")}]")
+        withJsonBody = s"[${todoJsons.mkString(",")}]")
     }
 
     "respond with '404 Not Found' on 'DELETE /:id' for non-existent resource" in {
