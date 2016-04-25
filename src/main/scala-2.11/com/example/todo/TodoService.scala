@@ -31,4 +31,15 @@ class TodoService @Inject()(client: Jedis,
 
     todo.copy(id = Some(todoId.replace(KeyPrefix, "").toLong))
   }
+
+  def delete(id: Long): Unit = {
+    info(s"Deleting TODO with id: $id")
+    val deletedKeysCount = client.del(s"$KeyPrefix$id")
+    if (deletedKeysCount != 1) {
+      info(s"Failed to delete $id. Possibly key not found")
+      throw new ResourceNotFoundException(s"Key not present: $id")
+    } else {
+      info(s"Deleted TODO with id: $id")
+    }
+  }
 }
