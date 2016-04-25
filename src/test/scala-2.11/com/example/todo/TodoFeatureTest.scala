@@ -2,8 +2,10 @@ package com.example.todo
 
 import com.twitter.finagle.http.Status
 import com.twitter.finatra.http.test.EmbeddedHttpServer
+import com.twitter.finatra.json.FinatraObjectMapper
 import com.twitter.inject.server.FeatureTest
 import org.joda.time.DateTime
+import org.mockito.Mockito
 import redis.clients.jedis.Jedis
 
 class TodoFeatureTest extends FeatureTest {
@@ -75,6 +77,21 @@ class TodoFeatureTest extends FeatureTest {
         andExpect = Status.Created)
     }
 
+    "respond with created TODO for 'POST /'" in {
+      val mockId = 123
+      val client: Jedis = injector.instance[Jedis]
+      Mockito.when(client.get(TodoIdCounter.CounterKey)).thenReturn(s"$mockId")
+
+      val mapper = injector.instance[FinatraObjectMapper]
+      val todo = mapper.parse[Todo](todoJson1)
+
+      server.httpPost(
+        path = "/",
+        postBody = todoJson1,
+        andExpect = Status.Created,
+        withJsonBody = mapper.writeValueAsString(todo.copy(id = Some(mockId))))
+    }
+
     "respond with '400 Bad Request' for POST '/', when json in invalid" in {
       server.httpPost(
         path = "/",
@@ -95,5 +112,6 @@ class TodoFeatureTest extends FeatureTest {
         andExpect = Status.Ok,
         withJsonBody = s"[$todoJson1, ${todoJsons.mkString(",")}]")
     }
+
   }
 }
