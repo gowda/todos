@@ -4,12 +4,13 @@ import javax.inject.Singleton
 
 import com.google.inject.Provides
 import com.twitter.inject.TwitterModule
+import org.mockito.Mockito
 import redis.clients.jedis.Jedis
 
 object JedisModule extends TwitterModule {
   @Singleton
   @Provides
   def provideJedis: Jedis = {
-    new Jedis("localhost", 7295)
+    Mockito.spy(new Jedis("localhost", 7295))
   }
 }
