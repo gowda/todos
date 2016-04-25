@@ -1,5 +1,6 @@
 package com.example.todo
 
+import com.example.todo.models.{Todo, TodoIdCounter}
 import com.twitter.finagle.http.Status
 import com.twitter.finatra.http.test.EmbeddedHttpServer
 import com.twitter.finatra.json.FinatraObjectMapper

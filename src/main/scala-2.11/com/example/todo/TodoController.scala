@@ -2,6 +2,8 @@ package com.example.todo
 
 import javax.inject.Inject
 
+import com.example.todo.models.Todo
+import com.example.todo.models.http.{DeleteTodoRequest, PostTodoRequest}
 import com.twitter.finagle.http.Request
 import com.twitter.finatra.http.Controller
 

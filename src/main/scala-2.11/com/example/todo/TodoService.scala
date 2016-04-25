@@ -5,7 +5,8 @@ import javax.inject.Inject
 import com.twitter.finatra.json.FinatraObjectMapper
 import com.twitter.inject.Logging
 import redis.clients.jedis.Jedis
-import com.example.todo.TodoIdCounter.KeyPrefix
+import com.example.todo.models.TodoIdCounter.KeyPrefix
+import com.example.todo.models.{Todo, TodoIdCounter}
 
 class TodoService @Inject()(client: Jedis,
                             counter: TodoIdCounter,

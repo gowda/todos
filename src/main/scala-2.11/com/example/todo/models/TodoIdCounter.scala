@@ -1,9 +1,10 @@
-package com.example.todo
+package com.example.todo.models
 
-import com.example.todo.TodoIdCounter._
 import javax.inject.{Inject, Singleton}
 
 import redis.clients.jedis.Jedis
+
+import com.example.todo.models.TodoIdCounter._
 
 object TodoIdCounter {
   val InitialValue = 10000000L
