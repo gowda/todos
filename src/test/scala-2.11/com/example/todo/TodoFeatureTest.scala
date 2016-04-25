@@ -90,6 +90,8 @@ class TodoFeatureTest extends FeatureTest {
         postBody = todoJson1,
         andExpect = Status.Created,
         withJsonBody = mapper.writeValueAsString(todo.copy(id = Some(mockId))))
+
+      Mockito.reset(client)
     }
 
     "respond with '400 Bad Request' for POST '/', when json in invalid" in {
