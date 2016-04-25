@@ -10,7 +10,7 @@ import redis.clients.jedis.Jedis
 
 class TodoFeatureTest extends FeatureTest {
 
-  override protected def beforeAll() = {
+  override protected def beforeEach() = {
     super.beforeAll()
     val client: Jedis = injector.instance[Jedis]
     client.flushAll()
