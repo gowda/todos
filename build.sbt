@@ -18,7 +18,6 @@ libraryDependencies ++= Seq(
   "com.twitter.finatra" %% "finatra-httpclient" % versions.finatra,
   "com.twitter.finatra" %% "finatra-slf4j" % versions.finatra,
   "ch.qos.logback" % "logback-classic" % versions.logback,
-  "redis.clients" % "jedis" % versions.redis,
   "com.typesafe.slick" %% "slick" % "3.1.1",
   "mysql" % "mysql-connector-java" % "5.1.38",
 
