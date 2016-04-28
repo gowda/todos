@@ -6,6 +6,7 @@ import com.example.todos.models.Todo
 import com.example.todos.models.http.{DeleteTodoRequest, PostTodoRequest}
 import com.twitter.finagle.http.Request
 import com.twitter.finatra.http.Controller
+import com.example.todos.DB.db
 
 class TodosController @Inject()(todoService: TodosService) extends Controller {
   get("/") { request: Request =>
