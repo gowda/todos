@@ -14,7 +14,7 @@ class TodosController @Inject()(todoService: TodosService) extends Controller {
 
   post("/") { request: PostTodoRequest =>
     val todo = todoService.add(
-      Todo(request.title, request.description, request.start, request.end))
+      Todo(None, request.title, request.description, request.start, request.end))
 
     response.created(todo)
   }
