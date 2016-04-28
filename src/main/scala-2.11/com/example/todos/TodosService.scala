@@ -5,43 +5,74 @@ import javax.inject.Inject
 import com.example.todos.exceptions.ResourceNotFoundException
 import com.twitter.finatra.json.FinatraObjectMapper
 import com.twitter.inject.Logging
-import redis.clients.jedis.Jedis
-import com.example.todos.models.TodosIdCounter.KeyPrefix
-import com.example.todos.models.{Todo, TodosIdCounter}
+import com.example.todos.models.Todo
+import com.example.todos.storage.Todos
+import slick.driver.MySQLDriver.api._
 
-class TodosService @Inject()(client: Jedis,
-                             counter: TodosIdCounter,
-                             mapper: FinatraObjectMapper)
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success}
+
+class TodosService @Inject()(mapper: FinatraObjectMapper)
   extends Logging {
-  def getAll(): List[Todo] = {
-    val keys = client.keys(s"$KeyPrefix*").toArray
-    var todos: List[Todo] = List[Todo]()
-    for (key <- keys) {
-      val todoJson = client.get(key.toString)
-      info(s"Key: $key")
-      info(s"JSON read from redis: $todoJson")
-      val todo: Todo = mapper.parse[Todo](todoJson)
-      todos = todo :: todos
+  val todos = TableQuery[Todos]
+
+  def getAll(implicit db: Database): Seq[Todo] = {
+    val allTodosAction: DBIO[Seq[Todo]] =
+      todos.result
+
+    val allTodosFuture = db.run(allTodosAction)
+    Await.result(allTodosFuture, Duration.Inf)
+
+    allTodosFuture.value match {
+      case Some(triedTodos) => {
+        triedTodos match {
+          case Success(todosList) => todosList
+          case Failure(exception) =>
+            throw ResourceNotFoundException(exception.getMessage)
+        }
+      }
+      case _ => throw ResourceNotFoundException("failed to fetch users")
     }
-
-    todos.sortWith(_.start isBefore _.start)
   }
 
-  def add(todo: Todo): Todo = {
-    val todoId = counter.next
-    client.set(todoId, mapper.writeValueAsString(todo))
-
-    todo.copy(id = Some(todoId.replace(KeyPrefix, "").toLong))
+  def add(todo: Todo)(implicit db: Database): Todo = {
+    val insertAction = (todos returning todos.map(_.id)
+      into ((todo, id) => todo.copy(id = Some(id)))) +=
+      Todo(None, todo.title, todo.description, todo.start, todo.end)
+    val insertedTodoFuture = db.run(insertAction)
+    Await.result(insertedTodoFuture, Duration.Inf)
+    insertedTodoFuture.value.get match {
+      case Success(insertedTodo) => {
+        error(s"Finished add TODO with id ${insertedTodo.id.get}.")
+        insertedTodo
+      }
+      case Failure(exception) => {
+        error(s"Failed to add TODO. ${exception.getMessage}")
+        throw new ResourceNotFoundException(s"Failed to add TODO: ${exception.getMessage}")
+      }
+    }
   }
 
-  def delete(id: Long): Unit = {
+  def delete(id: Long)(implicit db: Database): Unit = {
     info(s"Deleting TODO with id: $id")
-    val deletedKeysCount = client.del(s"$KeyPrefix$id")
-    if (deletedKeysCount != 1) {
-      info(s"Failed to delete $id. Possibly key not found")
-      throw new ResourceNotFoundException(s"Key not present: $id")
-    } else {
-      info(s"Deleted TODO with id: $id")
+    val deleteAction = todos.filter(_.id === id).delete
+    val deletedTodoFuture = db.run(deleteAction)
+    Await.result(deletedTodoFuture, Duration.Inf)
+
+    deletedTodoFuture.value.get match {
+      case Success(affectedRowsCount) => {
+        if (affectedRowsCount != 1) {
+          error(s"Delete TODO failed for $id. Key not present.")
+          throw new ResourceNotFoundException(s"Key not present: $id")
+        } else {
+          info(s"Finish delete TODO with id $id")
+        }
+      }
+      case Failure(exception) => {
+        error(s"Failed to delete TODO with id $id. ${exception.getMessage}")
+        throw new ResourceNotFoundException(s"Key not present: $id")
+      }
     }
   }
 }
