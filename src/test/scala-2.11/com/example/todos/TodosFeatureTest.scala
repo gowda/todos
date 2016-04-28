@@ -1,20 +1,27 @@
 package com.example.todos
 
-import com.example.todos.models.{Todo, TodosIdCounter}
+import java.sql.Timestamp
+import java.time.Instant
+
+import com.example.todos.models.Todo
 import com.twitter.finagle.http.Status
 import com.twitter.finatra.http.test.EmbeddedHttpServer
 import com.twitter.finatra.json.FinatraObjectMapper
 import com.twitter.inject.server.FeatureTest
 import org.joda.time.DateTime
-import org.mockito.Mockito
-import redis.clients.jedis.Jedis
+import com.example.todos.DB.db
+import com.example.todos.storage.Todos
+import slick.driver.MySQLDriver.api._
+
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 
 class TodosFeatureTest extends FeatureTest {
-
   override protected def beforeEach() = {
     super.beforeAll()
-    val client: Jedis = injector.instance[Jedis]
-    client.flushAll()
+    val todos: TableQuery[Todos] = TableQuery[Todos]
+    val deleteAction = todos.filter(_.id > 0L).delete
+    Await.result(db.run(deleteAction), Duration.Inf)
   }
 
   override val server = new EmbeddedHttpServer(new TodosServer)
@@ -27,7 +34,7 @@ class TodosFeatureTest extends FeatureTest {
                  |   "end": "${DateTime.now().plusDays(6).toString}"
                  |}
           """.stripMargin
-  val todoJsons = List(
+  val todoJsons = Seq(
     s"""
        |{
        |   "title": "Test task - 1",
@@ -79,20 +86,16 @@ class TodosFeatureTest extends FeatureTest {
     }
 
     "respond with created TODO for 'POST /'" in {
-      val mockId = 123
-      val client: Jedis = injector.instance[Jedis]
-      Mockito.when(client.get(TodosIdCounter.CounterKey)).thenReturn(s"$mockId")
-
       val mapper = injector.instance[FinatraObjectMapper]
       val todo = mapper.parse[Todo](todoJson1)
 
-      server.httpPost(
+      val response = server.httpPost(
         path = "/",
         postBody = todoJson1,
-        andExpect = Status.Created,
-        withJsonBody = mapper.writeValueAsString(todo.copy(id = Some(mockId))))
+        andExpect = Status.Created)
 
-      Mockito.reset(client)
+      val returnedTodo = mapper.parse[Todo](response.contentString)
+      assert(todo.copy(id = returnedTodo.id) == returnedTodo)
     }
 
     "respond with '400 Bad Request' for POST '/', when json in invalid" in {
@@ -103,20 +106,30 @@ class TodosFeatureTest extends FeatureTest {
     }
 
     "respond with all todos for 'GET /'" in {
-      val client: Jedis = injector.instance[Jedis]
-      val todoIdCounter = injector.instance[TodosIdCounter]
+      val mapper = injector.instance[FinatraObjectMapper]
 
-      for (todo <- todoJsons) {
-        val id = todoIdCounter.next
-        client.set(id, todo)
+      val todos: TableQuery[Todos] = TableQuery[Todos]
+
+      val inputTodos = todoJsons.map { todoJson =>
+        mapper.parse[Todo](todoJson)
       }
 
-      error(s"Keys: ${client.keys("*")}")
+      val query = (todos returning todos.map(_.id)
+        into ((todo, id) => todo.copy(id = Some(id)))) ++= inputTodos
 
-      server.httpGet(
+      val insertedTodosFuture = db.run(query)
+      Await.result(insertedTodosFuture, Duration.Inf)
+
+      val response = server.httpGet(
         path = "/",
-        andExpect = Status.Ok,
-        withJsonBody = s"[${todoJsons.mkString(",")}]")
+        andExpect = Status.Ok)
+
+      val responseTodos = mapper.parse[Seq[Todo]](response.contentString)
+      assert(responseTodos.length == inputTodos.length)
+      inputTodos.foreach { todo =>
+        assert(responseTodos.exists { t =>
+          t.title == todo.title && t.description == todo.description })
+      }
     }
 
     "respond with '404 Not Found' on 'DELETE /:id' for non-existent resource" in {
@@ -124,13 +137,24 @@ class TodosFeatureTest extends FeatureTest {
     }
 
     "respond with '200 Ok' on 'DELETE /:id' for existing resource" in {
-      val service = injector.instance[TodosService]
-      val todo = service.add(
-        Todo("test title",
-          "test description",
-          DateTime.now().plusDays(1),
-          DateTime.now().plusDays(2)))
+      val startTimestamp = Timestamp.from(
+        Instant.ofEpochMilli(DateTime.now().plusDays(1).getMillis))
+      val endTimestamp = Timestamp.from(
+        Instant.ofEpochMilli(DateTime.now().plusDays(2).getMillis))
 
+      val todos: TableQuery[Todos] = TableQuery[Todos]
+
+      val query = (todos returning todos.map(_.id)
+        into ((todo, id) => todo.copy(id = Some(id)))) +=
+        Todo(None, "test title", "test description",
+          startTimestamp, endTimestamp)
+
+      val insertedTodoFuture = db.run(query)
+      Await.result(insertedTodoFuture, Duration.Inf)
+
+      val todo = insertedTodoFuture.value.get.get
+
+      info(s"Attempting to delete TODO with id ${todo.id.get}")
       server.httpDelete(path = s"/${todo.id.get}", andExpect = Status.Ok)
     }
   }
