@@ -1,9 +1,9 @@
 package com.example.todos.models
 
-import org.joda.time.DateTime
+import java.sql.Timestamp
 
-case class Todo(title: String,
+case class Todo(id: Option[Long] = None,
+                title: String,
                 description: String,
-                start: DateTime,
-                end: DateTime,
-                id: Option[Long] = None)
+                start: Timestamp,
+                end: Timestamp)
