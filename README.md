@@ -4,9 +4,9 @@ Implementation of http://todomvc.com/ in scala, using twitter's [finatra](https:
 
 ### Tests
 #### External dependencies
-Dedicated [`redis`](http://redis.io/) instance is required for running tests. Tests modify the `redis` data-store, by deleting all key-values.
+[`MySQL`](https://www.mysql.com/) server is required for running tests.
 
-Tests in this project expect `redis` server to listen on `localhost:7295`.
+Tests expect to find `todos` database with username `todoer` and password `todoer`.
 
 #### Run
 ```bash
